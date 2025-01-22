@@ -225,11 +225,11 @@ def get_data(transmitter: str, dev: object, timeout: int,
         else:
             break
     else:
-        print()
+        print(file=sys.stderr)
         print(f"No {transmitter} data received...", file=sys.stderr)
         return None
 
-    print()
+    print(file=sys.stderr)
     print("Packet found!", file=sys.stderr)
     return format_packet(data)
 
@@ -366,8 +366,8 @@ def main() -> int:
                 print(f"Unknown action: {args.action}")
                 return 255
     except AttributeError as e:
-        if hasattr(e.obj, 'TYPE'):
-            print(f"Action {e.name} not supported by device {dev.TYPE} {dev.devtype}")
+        if hasattr(e.obj, "TYPE"):
+            print(f"Action {e.name} not supported by device {dev.TYPE} {dev.devtype}", file=sys.stderr)
             return 2
         else:
             raise e
