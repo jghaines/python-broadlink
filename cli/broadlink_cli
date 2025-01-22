@@ -17,13 +17,14 @@ from broadlink.const import DEFAULT_PORT
 from broadlink.exceptions import ReadError, StorageError
 from broadlink.remote import data_to_pulses, pulses_to_data
 
-DEFAULT_TIMEOUT = 30 # seconds
+DEFAULT_TIMEOUT = 30  # seconds
 DEFAULT_DEVICE = 0x2712
 
 
 def auto_int(x) -> int:
     """Parse the given value to an integer"""
     return int(x, 0)
+
 
 def auto_hex(x) -> bytearray:
     """Parse the given hex string to a byte array"""
@@ -39,76 +40,180 @@ def parse_args() -> object:
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    action_group = parser.add_argument_group("Actions", "Specify the action to perform.")
-    action_group.add_argument("--sensors", dest="action", action="store_const",
-                              const="sensors", help="Check all sensors")
-    action_group.add_argument("--temperature", dest="action", action="store_const",
-                              const="temperature", help="Request temperature from the device")
-    action_group.add_argument("--humidity", dest="action", action="store_const",
-                              const="humidity", help="Request humidity from the device")
-
-    action_group.add_argument("--energy", dest="action", action="store_const",
-                              const="energy", help="Request energy consumption from the device")
-    action_group.add_argument("--check", dest="action", action="store_const",
-                              const="check", help="Check current power state")
-    action_group.add_argument("--checknl", dest="action", action="store_const",
-                              const="checknl", help="Check current nightlight state")
-
-    action_group.add_argument("--turnon", dest="action", action="store_const",
-                              const="turnon", help="Turn on the device")
-    action_group.add_argument("--turnoff", dest="action", action="store_const",
-                              const="turnoff", help="Turn off the device")
-    action_group.add_argument("--turnnlon", dest="action", action="store_const",
-                              const="turnnlon", help="Turn on nightlight on the device")
-    action_group.add_argument("--turnnloff", dest="action", action="store_const",
-                              const="turnnloff", help="Turn off nightlight on the device")
-    action_group.add_argument("--switch", dest="action", action="store_const",
-                              const="switch", help="Switch state from on to off and off to on")
-
-    action_group.add_argument("--send", dest="action", action="store_const",
-                              const="send", help="Send command")
-
-    action_group.add_argument("--convert", dest="action", action="store_const",
-                              const="convert", help="Convert input data to durations")
-
-    action_group.add_argument("--discover", dest="action", action="store_const", const="discover",
-                              help="Scan the local network to discover Broadlink devices")
-    action_group.add_argument("--irlearn", "--learn", dest="action", action="store_const",
-                              const="irlearn", help="IR learning")
-    action_group.add_argument("--rflearn", dest="action", action="store_const",
-                              const="rflearn", help="RF scan learning")
-
-    parser.add_argument("--frequency", type=float,
-                        help="Specify radiofrequency for --rflean, otherwise scan")
-
-    parser.add_argument("--device", help="Device definition as 'type host mac'")
-    parser.add_argument("--type", type=auto_int, default=DEFAULT_DEVICE, dest="devtype",
-                        help="Type of device")
-    parser.add_argument("--host", help="Host address")
-    parser.add_argument("--mac", type=auto_hex,
-                        help="MAC address (hex reverse), as used by python-broadlink library")
-
-    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Broadlink port")
-    parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT,
-                        help="The timeout period for actions")
-
-    parser.add_argument("--joinwifi", nargs=2,
-                        help="SSID and PASSPHRASE to configure Broadlink device with")
-
-    parser.add_argument("--learntemplate",
-                        help='Specified template for learning and outputing multiple controls '
-                        '- e.g. --learntemplate \'{ "on" : "raw", "off": "raw" }\'')
-    parser.add_argument("--learnfile", help="Save learned command to a specified file")
-
-    parser.add_argument("--output", dest="out_fmt",
-        choices=['json', 'text', 'raw', 'base64', 'pulses'],
-        default='json',
-        help="Specify the output format. 'json' (default), 'text', or a single learned field:"
-        "'raw' (hex; default Broadlink format), 'base64', 'pulses' (microsecond-format) "
+    action_group = parser.add_argument_group(
+        "Actions", "Specify the action to perform."
+    )
+    action_group.add_argument(
+        "--sensors",
+        dest="action",
+        action="store_const",
+        const="sensors",
+        help="Check all sensors",
+    )
+    action_group.add_argument(
+        "--temperature",
+        dest="action",
+        action="store_const",
+        const="temperature",
+        help="Request temperature from the device",
+    )
+    action_group.add_argument(
+        "--humidity",
+        dest="action",
+        action="store_const",
+        const="humidity",
+        help="Request humidity from the device",
     )
 
-    parser.add_argument("--durations", action="store_true",
-                        help="Parse [data] durations in microsecond- instead of Broadlink-format")
+    action_group.add_argument(
+        "--energy",
+        dest="action",
+        action="store_const",
+        const="energy",
+        help="Request energy consumption from the device",
+    )
+    action_group.add_argument(
+        "--check",
+        dest="action",
+        action="store_const",
+        const="check",
+        help="Check current power state",
+    )
+    action_group.add_argument(
+        "--checknl",
+        dest="action",
+        action="store_const",
+        const="checknl",
+        help="Check current nightlight state",
+    )
+
+    action_group.add_argument(
+        "--turnon",
+        dest="action",
+        action="store_const",
+        const="turnon",
+        help="Turn on the device",
+    )
+    action_group.add_argument(
+        "--turnoff",
+        dest="action",
+        action="store_const",
+        const="turnoff",
+        help="Turn off the device",
+    )
+    action_group.add_argument(
+        "--turnnlon",
+        dest="action",
+        action="store_const",
+        const="turnnlon",
+        help="Turn on nightlight on the device",
+    )
+    action_group.add_argument(
+        "--turnnloff",
+        dest="action",
+        action="store_const",
+        const="turnnloff",
+        help="Turn off nightlight on the device",
+    )
+    action_group.add_argument(
+        "--switch",
+        dest="action",
+        action="store_const",
+        const="switch",
+        help="Switch state from on to off and off to on",
+    )
+
+    action_group.add_argument(
+        "--send", dest="action", action="store_const", const="send", help="Send command"
+    )
+
+    action_group.add_argument(
+        "--convert",
+        dest="action",
+        action="store_const",
+        const="convert",
+        help="Convert input data to durations",
+    )
+
+    action_group.add_argument(
+        "--discover",
+        dest="action",
+        action="store_const",
+        const="discover",
+        help="Scan the local network to discover Broadlink devices",
+    )
+    action_group.add_argument(
+        "--irlearn",
+        "--learn",
+        dest="action",
+        action="store_const",
+        const="irlearn",
+        help="IR learning",
+    )
+    action_group.add_argument(
+        "--rflearn",
+        dest="action",
+        action="store_const",
+        const="rflearn",
+        help="RF scan learning",
+    )
+
+    parser.add_argument(
+        "--frequency",
+        type=float,
+        help="Specify radiofrequency for --rflean, otherwise scan",
+    )
+
+    parser.add_argument("--device", help="Device definition as 'type host mac'")
+    parser.add_argument(
+        "--type",
+        type=auto_int,
+        default=DEFAULT_DEVICE,
+        dest="devtype",
+        help="Type of device",
+    )
+    parser.add_argument("--host", help="Host address")
+    parser.add_argument(
+        "--mac",
+        type=auto_hex,
+        help="MAC address (hex reverse), as used by python-broadlink library",
+    )
+
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Broadlink port")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=DEFAULT_TIMEOUT,
+        help="The timeout period for actions",
+    )
+
+    parser.add_argument(
+        "--joinwifi",
+        nargs=2,
+        help="SSID and PASSPHRASE to configure Broadlink device with",
+    )
+
+    parser.add_argument(
+        "--learntemplate",
+        help="Specified template for learning and outputing multiple controls "
+        '- e.g. --learntemplate \'{ "on" : "raw", "off": "raw" }\'',
+    )
+    parser.add_argument("--learnfile", help="Save learned command to a specified file")
+
+    parser.add_argument(
+        "--output",
+        dest="out_fmt",
+        choices=["json", "text", "raw", "base64", "pulses"],
+        default="json",
+        help="Specify the output format. 'json' (default), 'text', or a single learned field:"
+        "'raw' (hex; default Broadlink format), 'base64', 'pulses' (microsecond-format) ",
+    )
+
+    parser.add_argument(
+        "--durations",
+        action="store_true",
+        help="Parse [data] durations in microsecond- instead of Broadlink-format",
+    )
     parser.add_argument("--data", nargs="*", help="Data to send or convert")
 
     args = parser.parse_args()
@@ -136,10 +241,8 @@ def parse_args() -> object:
             )
     elif args.action not in ["irlearn", "rflearn"]:
         if args.learntemplate:
-            parser.error(
-                "--learntemplate can only be used with --learn or --rflearn"
-            )
-        if args.out_fmt not in [ "json", "text" ]:
+            parser.error("--learntemplate can only be used with --learn or --rflearn")
+        if args.out_fmt not in ["json", "text"]:
             parser.error(
                 f"--output {args.out_fmt} can only be used with --learn or --rflearn"
             )
@@ -157,21 +260,26 @@ def parse_args() -> object:
 
     return args
 
+
 def format_pulses(pulses: List[int]) -> str:
     """Concatentate the list of pulses"""
     return " ".join(
-        f"+{pulse}" if i % 2 == 0 else f"-{pulse}"
-        for i, pulse in enumerate(pulses)
+        f"+{pulse}" if i % 2 == 0 else f"-{pulse}" for i, pulse in enumerate(pulses)
     )
+
 
 def parse_pulses(data: List[str]) -> List[int]:
     """Parse pulses."""
     return [abs(int(s)) for s in data]
 
+
 def get_frequency(dev: object, timeout: int):
     """Scan to detect RF remote frequency"""
     dev.sweep_frequency()
-    print("Detecting radiofrequency, press and HOLD the button to learn...", file=sys.stderr)
+    print(
+        "Detecting radiofrequency, press and HOLD the button to learn...",
+        file=sys.stderr,
+    )
 
     start = time.time()
     while time.time() - start < timeout:
@@ -192,6 +300,7 @@ def get_frequency(dev: object, timeout: int):
 
     return frequency
 
+
 def format_packet(data: object) -> dict:
     """Return the broadlink data packet as a well-formated object"""
     return {
@@ -200,12 +309,17 @@ def format_packet(data: object) -> dict:
         "pulses": format_pulses(data_to_pulses(data)),
     }
 
-def get_data(transmitter: str, dev: object, timeout: int,
-             frequency: float, prompt: str = None) -> object:
+
+def get_data(
+    transmitter: str, dev: object, timeout: int, frequency: float, prompt: str = None
+) -> object:
     """Get data of transmitter type (RF|IR) from the given device-"""
 
-    print(f"Awaiting {transmitter} code{ f' for {prompt} button' if prompt else '' }...",
-          file=sys.stderr, end=None)
+    print(
+        f"Awaiting {transmitter} code{ f' for {prompt} button' if prompt else '' }...",
+        file=sys.stderr,
+        end=None,
+    )
     if transmitter == "RF":
         dev.find_rf_packet(frequency)
     else:
@@ -217,10 +331,10 @@ def get_data(transmitter: str, dev: object, timeout: int,
         try:
             data = dev.check_data()
         except ReadError:
-            print("_", end='')
+            print("_", end="")
             continue
         except StorageError:
-            print(".", end='')
+            print(".", end="")
             continue
         else:
             break
@@ -233,7 +347,8 @@ def get_data(transmitter: str, dev: object, timeout: int,
     print("Packet found!", file=sys.stderr)
     return format_packet(data)
 
-def print_data(out_fmt: str, data: any, sep: str=' '):
+
+def print_data(out_fmt: str, data: any, sep: str = " "):
     """Output the given data in the given format"""
     if out_fmt == "json":
         print(json.dumps(data, indent=4))
@@ -244,19 +359,27 @@ def print_data(out_fmt: str, data: any, sep: str=' '):
 
     if out_fmt == "text":
         for key in data[0].keys():
-            print(key, sep, end='')
+            print(key, sep, end="")
         print()
 
     for item in data:
         if out_fmt == "text":
             for key in data[0].keys():
-                print(item[key], sep, end='')
+                print(item[key], sep, end="")
             print()
         else:
             print(item[out_fmt])
 
-def do_learn(transmitter: str, dev: object, out_fmt: str, learntemplate: str, learnfile: str,
-             timeout: int, frequency: float = None) -> int:
+
+def do_learn(
+    transmitter: str,
+    dev: object,
+    out_fmt: str,
+    learntemplate: str,
+    learnfile: str,
+    timeout: int,
+    frequency: float = None,
+) -> int:
     """
     Learning
     """
@@ -266,7 +389,7 @@ def do_learn(transmitter: str, dev: object, out_fmt: str, learntemplate: str, le
 
     if learntemplate:
         data = {}
-        for (key, value) in learntemplate.items():
+        for key, value in learntemplate.items():
             item_data = get_data(transmitter, dev, timeout, frequency, prompt=key)
             if not item_data:
                 return 1
@@ -277,9 +400,9 @@ def do_learn(transmitter: str, dev: object, out_fmt: str, learntemplate: str, le
     print_data(out_fmt, data, sep=os.linesep)
 
     if learnfile:
-        if out_fmt == 'json':
+        if out_fmt == "json":
             output = json.dumps(data, indent=4)
-        elif out_fmt == 'text':
+        elif out_fmt == "text":
             output = " ".join(data.keys()) + os.linesep + " ".join(data.values())
         else:
             output = data[out_fmt]
@@ -290,17 +413,23 @@ def do_learn(transmitter: str, dev: object, out_fmt: str, learntemplate: str, le
 
     return 0
 
+
 def discover_devices(out_fmt: str, ip=None) -> int:
     """Scan local network for Broadlink devices"""
     try:
-        print(f"Scanning { (ip + ' on ') if ip else '' }local network...",
-              file=sys.stderr)
+        print(
+            f"Scanning { (ip + ' on ') if ip else '' }local network...", file=sys.stderr
+        )
         devices = broadlink.discover(local_ip_address=ip)
         for device in devices:
-            print_data(out_fmt, {
-                "devtype": device.devtype,
-                "host": device.host[0],
-                "mac": device.mac.hex() })
+            print_data(
+                out_fmt,
+                {
+                    "devtype": device.devtype,
+                    "host": device.host[0],
+                    "mac": device.mac.hex(),
+                },
+            )
         return 0
     except Exception as e:
         print(f"Error in discover_devices: {e}", file=sys.stderr)
@@ -318,34 +447,34 @@ def main() -> int:
     try:
         match args.action:
             case "temperature":
-                print_data(args.out_fmt, { "temperature": dev.check_temperature() })
+                print_data(args.out_fmt, {"temperature": dev.check_temperature()})
             case "humidity":
-                print_data(args.out_fmt, { "humidity": dev.check_humidity() })
+                print_data(args.out_fmt, {"humidity": dev.check_humidity()})
             case "energy":
-                print_data(args.out_fmt, { "energy": dev.get_energy()})
+                print_data(args.out_fmt, {"energy": dev.get_energy()})
             case "sensors":
-                print_data(args.out_fmt, dev.check_sensors() )
+                print_data(args.out_fmt, dev.check_sensors())
             case "check":
-                print_data(args.out_fmt, { "power": dev.check_power() })
+                print_data(args.out_fmt, {"power": dev.check_power()})
             case "checknl":
-                print_data(args.out_fmt, { "nightlight": dev.check_nightlight() })
+                print_data(args.out_fmt, {"nightlight": dev.check_nightlight()})
 
             case "turnon":
                 dev.set_power(True)
-                print_data(args.out_fmt, { "power": dev.check_power() })
+                print_data(args.out_fmt, {"power": dev.check_power()})
             case "turnoff":
                 dev.set_power(False)
-                print_data(args.out_fmt, { "power": dev.check_power() })
+                print_data(args.out_fmt, {"power": dev.check_power()})
             case "switch":
                 dev.set_power(not dev.check_power())
-                print_data(args.out_fmt, { "power": dev.check_nightlight() })
+                print_data(args.out_fmt, {"power": dev.check_nightlight()})
 
             case "turnnlon":
                 dev.set_nightlight(True)
-                print_data(args.out_fmt, { "nightlight": dev.check_nightlight() })
+                print_data(args.out_fmt, {"nightlight": dev.check_nightlight()})
             case "turnnloff":
                 dev.set_nightlight(False)
-                print_data(args.out_fmt, { "nightlight": dev.check_nightlight() })
+                print_data(args.out_fmt, {"nightlight": dev.check_nightlight()})
 
             case "send":
                 dev.send_data(args.data)
@@ -353,11 +482,24 @@ def main() -> int:
             case "discover":
                 return discover_devices(args.out_fmt, args.host)
             case "irlearn":
-                return do_learn("IR", dev, args.out_fmt, args.learntemplate, args.learnfile,
-                                args.timeout)
+                return do_learn(
+                    "IR",
+                    dev,
+                    args.out_fmt,
+                    args.learntemplate,
+                    args.learnfile,
+                    args.timeout,
+                )
             case "rflearn":
-                return do_learn("RF", dev, args.out_fmt, args.learntemplate, args.learnfile,
-                                args.timeout, args.frequency)
+                return do_learn(
+                    "RF",
+                    dev,
+                    args.out_fmt,
+                    args.learntemplate,
+                    args.learnfile,
+                    args.timeout,
+                    args.frequency,
+                )
 
             case "convert":
                 print(data_to_pulses(bytearray.fromhex("".join(args.data))))
